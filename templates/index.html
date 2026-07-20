@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Communication Translator</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg app-navbar sticky-top">
+  <div class="container-fluid px-3 px-md-4">
+    <a class="navbar-brand fw-bold" href="#" id="brandHome">
+      <i class="bi bi-translate me-2"></i>AI Communication Translator
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-icon" id="favoritesBtn" title="Favorites">
+        <i class="bi bi-star"></i>
+      </button>
+      <button class="btn btn-icon" id="historyBtn" title="History">
+        <i class="bi bi-clock-history"></i>
+      </button>
+      <button class="btn btn-icon" id="themeToggle" title="Toggle theme">
+        <i class="bi bi-moon-stars"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid py-4 px-3 px-md-4">
+
+  <!-- HOME: MODE SELECTOR -->
+  <section id="homeView">
+    <div class="text-center mb-4 mb-md-5 hero">
+      <h1 class="fw-bold">Speak Any Language, Instantly Understood</h1>
+      <p class="text-muted">Choose a communication mode to get started</p>
+    </div>
+
+    <div class="row g-3 g-md-4 justify-content-center">
+      <div class="col-6 col-md-3">
+        <button class="mode-card w-100" data-mode="text-text">
+          <div class="mode-icon">📝➡️📝</div>
+          <h5>Text → Text</h5>
+          <p>Type and translate instantly</p>
+        </button>
+      </div>
+      <div class="col-6 col-md-3">
+        <button class="mode-card w-100" data-mode="voice-text">
+          <div class="mode-icon">🎤➡️📝</div>
+          <h5>Voice → Text</h5>
+          <p>Speak, see translated text</p>
+        </button>
+      </div>
+      <div class="col-6 col-md-3">
+        <button class="mode-card w-100" data-mode="text-voice">
+          <div class="mode-icon">📝➡️🔊</div>
+          <h5>Text → Voice</h5>
+          <p>Type, hear it translated</p>
+        </button>
+      </div>
+      <div class="col-6 col-md-3">
+        <button class="mode-card w-100" data-mode="voice-voice">
+          <div class="mode-icon">🎤➡️🔊</div>
+          <h5>Voice → Voice</h5>
+          <p>Full spoken conversation</p>
+        </button>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4 justify-content-center mt-1">
+      <div class="col-6 col-md-3">
+        <button class="mode-card mode-card-alt w-100" data-mode="ocr">
+          <div class="mode-icon">📷</div>
+          <h5>Image / Camera OCR</h5>
+          <p>Translate text in a photo</p>
+        </button>
+      </div>
+      <div class="col-6 col-md-3">
+        <button class="mode-card mode-card-alt w-100" data-mode="file">
+          <div class="mode-icon">📄</div>
+          <h5>Document Translate</h5>
+          <p>PDF, Word &amp; TXT files</p>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRANSLATOR WORKSPACE -->
+  <section id="workspaceView" class="d-none">
+    <button class="btn btn-link ps-0 mb-2" id="backHome"><i class="bi bi-arrow-left"></i> Back to modes</button>
+
+    <div class="card workspace-card">
+      <div class="card-body">
+
+        <h4 class="workspace-title mb-3"></h4>
+
+        <!-- Language bar -->
+        <div class="lang-bar d-flex align-items-center gap-2 mb-3 flex-wrap">
+          <div class="lang-select-wrap">
+            <button class="btn lang-btn" data-picker="source" type="button">
+              <i class="bi bi-mic-fill me-1 source-live-icon d-none"></i>
+              <span id="sourceLangLabel">Auto Detect</span>
+            </button>
+          </div>
+          <button class="btn btn-icon" id="swapLangs" title="Swap languages"><i class="bi bi-arrow-left-right"></i></button>
+          <div class="lang-select-wrap">
+            <button class="btn lang-btn" data-picker="target" type="button">
+              <span id="targetLangLabel">English</span>
+            </button>
+          </div>
+
+          <div class="form-check form-switch ms-auto grammar-switch" id="grammarSwitchWrap">
+            <input class="form-check-input" type="checkbox" id="grammarSwitch">
+            <label class="form-check-label small" for="grammarSwitch">Grammar correction</label>
+          </div>
+        </div>
+
+        <!-- TEXT INPUT MODES -->
+        <div id="textInputArea">
+          <textarea id="sourceText" class="form-control input-panel" rows="5" placeholder="Type text here..."></textarea>
+          <div class="d-flex justify-content-between mt-2">
+            <div>
+              <button class="btn btn-sm btn-outline-secondary" id="clearInput"><i class="bi bi-x-circle"></i> Clear</button>
+            </div>
+            <button class="btn btn-primary" id="translateBtn"><i class="bi bi-magic"></i> Translate</button>
+          </div>
+        </div>
+
+        <!-- VOICE INPUT MODES -->
+        <div id="voiceInputArea" class="d-none text-center">
+          <div class="mic-wrap">
+            <button class="mic-btn" id="micBtn"><i class="bi bi-mic-fill"></i></button>
+            <p class="text-muted small mt-2" id="micStatus">Tap the mic and start speaking</p>
+          </div>
+          <div class="form-check form-switch d-inline-flex align-items-center gap-2 mt-2 d-none" id="conversationSwitchWrap">
+            <input class="form-check-input" type="checkbox" id="conversationSwitch">
+            <label class="form-check-label small" for="conversationSwitch">Conversation mode (auto-swap after each turn)</label>
+          </div>
+          <textarea id="sourceTextVoice" class="form-control input-panel mt-3 text-start" rows="3" placeholder="Recognized speech will appear here..." readonly></textarea>
+        </div>
+
+        <!-- OCR / FILE MODES -->
+        <div id="ocrInputArea" class="d-none">
+          <input type="file" class="form-control mb-2" id="ocrFile" accept="image/*" capture="environment">
+          <button class="btn btn-primary" id="ocrTranslateBtn"><i class="bi bi-camera"></i> Extract &amp; Translate</button>
+        </div>
+        <div id="fileInputArea" class="d-none">
+          <input type="file" class="form-control mb-2" id="docFile" accept=".txt,.docx,.pdf">
+          <button class="btn btn-primary" id="fileTranslateBtn"><i class="bi bi-file-earmark-text"></i> Extract &amp; Translate</button>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- OUTPUT -->
+        <div class="output-panel">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-semibold mb-0">Translation</label>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-secondary" id="favoriteBtn" title="Save to favorites"><i class="bi bi-star"></i></button>
+              <button class="btn btn-sm btn-outline-secondary" id="copyBtn" title="Copy"><i class="bi bi-clipboard"></i></button>
+              <button class="btn btn-sm btn-outline-secondary" id="downloadTextBtn" title="Download text"><i class="bi bi-download"></i></button>
+            </div>
+          </div>
+          <div class="output-box" id="outputText">Your translation will appear here...</div>
+          <div class="small text-muted mt-1" id="correctedSourceWrap" style="display:none;">
+            Grammar-corrected input: <span id="correctedSourceText" class="fst-italic"></span>
+          </div>
+
+          <div id="audioControls" class="d-none mt-3 d-flex align-items-center gap-2">
+            <audio id="audioPlayer" controls class="flex-grow-1"></audio>
+            <a class="btn btn-sm btn-outline-secondary" id="downloadAudioBtn" title="Download audio"><i class="bi bi-download"></i></a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- LANGUAGE PICKER MODAL -->
+<div class="modal fade" id="langModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Select a language</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="form-control mb-3" id="langSearch" placeholder="Search languages...">
+        <div id="langList" class="lang-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY OFFCANVAS -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="historyPanel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title"><i class="bi bi-clock-history me-2"></i>History</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <button class="btn btn-sm btn-outline-danger mb-3" id="clearHistoryBtn">Clear all</button>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- FAVORITES OFFCANVAS -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="favoritesPanel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title"><i class="bi bi-star me-2"></i>Favorites</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div id="favoritesList"></div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="appToastBody">Done</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
