@@ -1,4 +1,4 @@
-'''Flask==3.0.3
+Flask==3.0.3
 deep-translator==1.11.4
 langdetect==1.0.9
 gTTS==2.5.1
@@ -7,7 +7,7 @@ Pillow==10.4.0
 PyPDF2==3.0.1
 python-docx==1.1.2
 python-dotenv==1.0.1
-gunicorn'''
+gunicorn
 # ---------------------------------------------------------------------------
 # OPTIONAL — server-side speech-to-text with OpenAI Whisper.
 # The app works fully without these (voice input uses the browser's built-in
@@ -16,14 +16,4 @@ gunicorn'''
 # ---------------------------------------------------------------------------
 # openai-whisper==20231117
 # ffmpeg-python==0.2.0
-Flask
-gunicorn
-
-deep-translator
-langdetect
-gTTS
-pytesseract
-Pillow
-PyPDF2
-python-docx
-python-dotenv
+ 
