@@ -1,4 +1,4 @@
-"""
+ """
 AI Communication Translator — Flask backend
 =============================================
 Provides REST APIs consumed by the single-page frontend (templates/index.html
@@ -14,6 +14,7 @@ Run with:
     python app.py
 Then open http://127.0.0.1:5000
 """
+
 import os
 import io
 import uuid
@@ -241,7 +242,7 @@ def api_ocr():
         return jsonify({"error": f"OCR failed (is Tesseract installed?): {exc}"}), 500
 
     if not extracted:
-        return jsonify({"error": "No text detected in the image"}), 400
+        return jsonify({"error": "No content found in the image."}), 400
 
     detected = detect_language(extracted)
     try:
@@ -291,7 +292,7 @@ def api_file_translate():
         return jsonify({"error": str(exc)}), 400
 
     if not text:
-        return jsonify({"error": "No text could be extracted from the file"}), 400
+        return jsonify({"error": "No content found in the document."}), 400
 
     detected = detect_language(text)
     try:
@@ -347,6 +348,3 @@ def api_file_translate():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-
-    
