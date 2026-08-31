@@ -1,4 +1,4 @@
- """
+"""
 AI Communication Translator — Flask backend
 =============================================
 Provides REST APIs consumed by the single-page frontend (templates/index.html
