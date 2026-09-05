@@ -1,0 +1,21 @@
+Flask==3.0.3
+gunicorn==22.0.0
+deep-translator==1.11.4
+langdetect==1.0.9
+gTTS==2.5.1
+rapidocr==2.1.0
+onnxruntime>=1.20.1
+numpy>=2.1.0
+Pillow>=11.0.0
+PyPDF2==3.0.1
+python-docx==1.1.2
+python-dotenv==1.0.1
+
+# ---------------------------------------------------------------------------
+# OPTIONAL — server-side speech-to-text with OpenAI Whisper.
+# The app works fully without these (voice input uses the browser's built-in
+# Web Speech API). Uncomment below only if you want a server-side /api/stt
+# endpoint powered by Whisper (heavier install, needs ffmpeg on the system).
+# ---------------------------------------------------------------------------
+# openai-whisper==20231117
+# ffmpeg-python==0.2.0
