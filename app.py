@@ -17,17 +17,25 @@ Then open http://127.0.0.1:5000
 
 import os
 import io
+import threading
+import time
 import uuid
+import importlib
 
 from flask import (
     Flask, render_template, request, jsonify, send_file, url_for
 )
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 from langdetect import detect, DetectorFactory, LangDetectException
 from gtts import gTTS
 from PIL import Image
 import numpy as np
-from rapidocr import RapidOCR
+try:
+    # Prefer the maintained package name; keep OCR optional so the app can
+    # still start when its native/runtime dependency is not installed.
+    RapidOCR = importlib.import_module("rapidocr_onnxruntime").RapidOCR
+except ImportError:
+    RapidOCR = None
 from PyPDF2 import PdfReader
 import docx
 
@@ -36,13 +44,16 @@ import docx
 # binary required. The reader is created once at startup; the first call
 # downloads and caches its small model files automatically.
 # ---------------------------------------------------------------------------
-ocr_reader = RapidOCR()
+ocr_reader = RapidOCR() if RapidOCR is not None else None
 
 DetectorFactory.seed = 0  # deterministic langdetect results
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AUDIO_DIR = os.path.join(BASE_DIR, "static", "audio")
 UPLOAD_DIR = os.path.join(BASE_DIR, "static", "uploads")
+TRANSLATE_MIN_INTERVAL = 0.25
+_translate_lock = threading.Lock()
+_last_translate_request = 0.0
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -99,6 +110,11 @@ GTTS_SUPPORTED = {
     "ur", "vi", "zh-CN", "zh-TW",
 }
 
+MYMEMORY_LANGUAGE_NAMES = {
+    "zh-CN": "chinese simplified",
+    "zh-TW": "chinese traditional",
+}
+
 
 # ---------------------------------------------------------------------------
 # Core helpers
@@ -116,11 +132,25 @@ def detect_language(text: str) -> str:
 
 
 def do_translate(text: str, source: str, target: str) -> str:
+    global _last_translate_request
+
     src = "auto" if source in (None, "", "auto") else source
-    translator = GoogleTranslator(source=src, target=target)
     # deep_translator has a ~5000 char limit per call; chunk long text.
     chunks = [text[i:i + 4500] for i in range(0, len(text), 4500)] or [""]
-    return " ".join(translator.translate(c) for c in chunks)
+    try:
+        translator = GoogleTranslator(source=src, target=target)
+        with _translate_lock:
+            elapsed = time.monotonic() - _last_translate_request
+            if elapsed < TRANSLATE_MIN_INTERVAL:
+                time.sleep(TRANSLATE_MIN_INTERVAL - elapsed)
+            translations = translator.translate_batch(chunks)
+            _last_translate_request = time.monotonic()
+        return " ".join(translations)
+    except Exception:
+        source_name = MYMEMORY_LANGUAGE_NAMES.get(src, LANGUAGES.get(src, src)).lower()
+        target_name = MYMEMORY_LANGUAGE_NAMES.get(target, LANGUAGES.get(target, target)).lower()
+        fallback = MyMemoryTranslator(source=source_name, target=target_name)
+        return " ".join(fallback.translate_batch(chunks))
 
 
 
@@ -175,7 +205,7 @@ def api_translate():
     detected = source if source not in (None, "", "auto") else detect_language(text)
 
     try:
-        translated = do_translate(text, source, target)
+        translated = do_translate(text, detected, target)
     except Exception as exc:  # noqa: BLE001
         return jsonify({"error": f"Translation failed: {exc}"}), 500
 
@@ -239,6 +269,11 @@ def api_tts():
 def api_ocr():
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
+
+    if ocr_reader is None:
+        return jsonify({
+            "error": "OCR is unavailable. Install rapidocr_onnxruntime."
+        }), 503
 
     file = request.files["image"]
     target = request.form.get("target", "en")
